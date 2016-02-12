@@ -26,14 +26,14 @@ void setup() {
   led = {
     .hardware = { .pin = 13, .state = 0 },
     .prevMillis = 0,
-    .interval = 500,
+    .interval = 1,
   };
   pinMode(led.hardware.pin, OUTPUT);
 
   ldr = {
     .pin = 0,
     .prevMillis = 0,
-    .interval = 10,
+    .interval = 1,
     .val = 0,
     .minVal = 9999,
     .maxVal = 0,
