@@ -1,18 +1,18 @@
 struct LEDHardware {
-  int pin;
-  int state;
+  uint8_t pin;
+  uint8_t state;
 };
 
 struct BlinkLED {
   LEDHardware hardware;
-  unsigned long prevMillis;
-  unsigned long interval;
+  uint32_t prevMillis;
+  uint32_t interval;
 };
 
 struct BlinkLED led;
 
 const int gLDRPin = 0;
-unsigned long gPrevLDRMillis = 0;
+uint32_t gPrevLDRMillis = 0;
 
 
 
@@ -32,15 +32,15 @@ void toggleLED(struct LEDHardware& led) {
   digitalWrite(led.pin, led.state);
 }
 
-void tryBlinkLED(struct BlinkLED& led, unsigned long currentMillis) {
+void tryBlinkLED(struct BlinkLED& led, uint32_t currentMillis) {
   if(currentMillis - led.prevMillis >= led.interval) {
     led.prevMillis = currentMillis;
     toggleLED(led.hardware);
   }
 }
 
-void tryLDR(unsigned long currentMillis) {
-  const unsigned long ldrInterval = 10;
+void tryLDR(uint32_t currentMillis) {
+  const uint32_t ldrInterval = 10;
   if(currentMillis - gPrevLDRMillis >= ldrInterval) {
     gPrevLDRMillis = currentMillis;
     const int val = analogRead(gLDRPin);
@@ -51,7 +51,7 @@ void tryLDR(unsigned long currentMillis) {
 
 void loop() {
   // Read and print input value every 10 milliseconds
-  const unsigned long currentMillis = millis();
+  const uint32_t currentMillis = millis();
 
   tryLDR(currentMillis);
   tryBlinkLED(led, currentMillis);
