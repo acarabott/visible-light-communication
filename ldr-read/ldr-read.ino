@@ -18,7 +18,7 @@ struct LDR {
   uint32_t maxVal;
 };
 
-const uint8_t printEnabled = 1;
+const uint8_t printEnabled = 0;
 
 struct BlinkLED led;
 struct LDR ldr;
@@ -33,14 +33,14 @@ void setup() {
   led = {
     .hardware = { .pin = 13, .state = 0 },
     .prevMicros = 0,
-    .interval = 1000000,
+    .interval = 1000,
   };
   pinMode(led.hardware.pin, OUTPUT);
 
   ldr = {
     .pin = 0,
     .prevMicros = 0,
-    .interval = 500000,
+    .interval = 1000,
     .val = 0,
     .minVal = 9999,
     .maxVal = 0,
