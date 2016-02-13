@@ -18,10 +18,12 @@ struct LDR {
   uint32_t maxVal;
 };
 
-const uint8_t printEnabled = 0;
+const uint8_t printEnabled = 1;
 
 struct BlinkLED led;
 struct LDR ldr;
+
+const uint8_t outputPin = 4;
 
 void setup() {
   if(printEnabled) {
@@ -31,19 +33,21 @@ void setup() {
   led = {
     .hardware = { .pin = 13, .state = 0 },
     .prevMicros = 0,
-    .interval = 20,
+    .interval = 1000000,
   };
   pinMode(led.hardware.pin, OUTPUT);
 
   ldr = {
     .pin = 0,
     .prevMicros = 0,
-    .interval = 20,
+    .interval = 500000,
     .val = 0,
     .minVal = 9999,
     .maxVal = 0,
   };
   pinMode(ldr.pin, INPUT);
+
+  pinMode(outputPin, OUTPUT);
 }
 
 void toggleLED(struct LEDHardware& led) {
@@ -65,9 +69,11 @@ void updateLDR(struct LDR& ldr) {
   ldr.maxVal = max(ldr.maxVal, ldr.val) - 1;
 
   // ensure that are min and max aren't too close
-  const uint32_t minRange = 5;
-  ldr.maxVal = ldr.maxVal < ldr.minVal + minRange ? ldr.maxVal + minRange :
-                                                    ldr.maxVal;
+  const uint32_t minRange = 10;
+  const uint8_t tooClose = ldr.minVal + minRange >= ldr.maxVal;
+
+  ldr.minVal = tooClose ? ldr.minVal - (minRange / 2) : ldr.minVal;
+  ldr.maxVal = tooClose ? ldr.maxVal + (minRange / 2) : ldr.maxVal;
 }
 
 uint8_t getLDRBinary(struct LDR& ldr) {
@@ -78,7 +84,11 @@ uint8_t getLDRBinary(struct LDR& ldr) {
 void tryLDR(struct LDR& ldr, uint32_t currentMicros) {
   if(currentMicros - ldr.prevMicros >= ldr.interval) {
     ldr.prevMicros = currentMicros;
+
     updateLDR(ldr);
+    const int8_t ldrBin = getLDRBinary(ldr);
+
+    digitalWrite(outputPin, ldrBin);
 
     if(printEnabled) {
       Serial.print("ldr val: ");
@@ -94,7 +104,7 @@ void tryLDR(struct LDR& ldr, uint32_t currentMicros) {
       Serial.print("\t");
 
       Serial.print("ldr bin: ");
-      Serial.print(getLDRBinary(ldr));
+      Serial.print(ldrBin);
       Serial.print("\n");
     }
   }
