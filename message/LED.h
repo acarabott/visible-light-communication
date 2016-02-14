@@ -20,6 +20,10 @@ public:
     digitalWrite(pin, state);
   }
 
+  void toggle() {
+    set(abs(state - 1));
+  }
+
   uint8_t getState() { return state; }
   uint8_t getPin() { return pin; }
 };
