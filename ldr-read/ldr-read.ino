@@ -141,55 +141,51 @@ uint8_t getLDRBinary(struct LDRHardware& ldr) {
 void tryLDR(struct PatternLDR& ldr, uint32_t currentMicros) {
   if(currentMicros - ldr.prevMicros >= ldr.interval) {
     ldr.prevMicros = currentMicros;
+
     updateLDR(ldr.hardware);
     const int8_t ldrBin = getLDRBinary(ldr.hardware);
-    digitalWrite(outputPin, ldrBin);
 
-    return;
-    // updateLDR(ldr.hardware);
-    // const int8_t ldrBin = getLDRBinary(ldr.hardware);
-
-    // const uint8_t mode = ldr.slots[ldr.slotIdx];
-    // ldr.slotIdx = (ldr.slotIdx + 1) % SLOTS;
-    // if(mode == 1) {
-    //   // read slot
-    //   digitalWrite(outputPin, ldrBin);
-    //   #ifdef DEBUG
-    //     // Serial.println("ldr data");
-    //     Serial.print("ldr bin: ");
-    //     Serial.println(ldrBin);
-    //   #endif
-    // } else {
-    //   // ignore slot
-    //   // digitalWrite(outputPin, 0);
-    //   #ifdef DEBUG
-    //     Serial.println("ldr null");
-    //   #endif
-    // }
-    // #ifdef DEBUG
-    //   Serial.println("------");
-    // #endif
+    const uint8_t mode = ldr.slots[ldr.slotIdx];
+    ldr.slotIdx = (ldr.slotIdx + 1) % SLOTS;
+    if(mode == 1) {
+      // read slot
+      digitalWrite(outputPin, ldrBin);
+      #ifdef DEBUG
+        // Serial.println("ldr data");
+        Serial.print("ldr bin: ");
+        Serial.println(ldrBin);
+      #endif
+    } else {
+      // ignore slot
+      // digitalWrite(outputPin, 0);
+      #ifdef DEBUG
+        Serial.println("ldr null");
+      #endif
+    }
+    #ifdef DEBUG
+      Serial.println("------");
+    #endif
 
 
 
 
-    // #ifdef DEBUG
-    //   Serial.print("ldr val: ");
-    //   Serial.print(ldr.hardware.val);
-    //   Serial.print("\t");
+    #ifdef DEBUG
+      Serial.print("ldr val: ");
+      Serial.print(ldr.hardware.val);
+      Serial.print("\t");
 
-    //   Serial.print("ldr min: ");
-    //   Serial.print(ldr.hardware.minVal);
-    //   Serial.print("\t");
+      Serial.print("ldr min: ");
+      Serial.print(ldr.hardware.minVal);
+      Serial.print("\t");
 
-    //   Serial.print("ldr max: ");
-    //   Serial.print(ldr.hardware.maxVal);
-    //   Serial.print("\t");
+      Serial.print("ldr max: ");
+      Serial.print(ldr.hardware.maxVal);
+      Serial.print("\t");
 
-    //   Serial.print("ldr bin: ");
-    //   Serial.print(ldrBin);
-    //   Serial.print("\n");
-    // #endif
+      Serial.print("ldr bin: ");
+      Serial.print(ldrBin);
+      Serial.print("\n");
+    #endif
   }
 }
 
@@ -199,5 +195,4 @@ void loop() {
 
   tryPatternLED(emitterLed, currentMicros);
   tryLDR(ldr, currentMicros);
-  // tryBlinkLED(led, currentMicros);
 }
