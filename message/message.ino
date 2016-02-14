@@ -12,9 +12,12 @@ const uint8_t steps = 2;
 uint32_t idx = 0;
 uint8_t emitterState = 0;
 
+#define PATTERN_LENGTH 2
+uint8_t pattern[PATTERN_LENGTH] = { 1, 0 };
+uint32_t patternIdx = 0;
+
 void setup()
 {
-  // Serial.begin(9600);
 }
 
 void loop()
@@ -25,21 +28,15 @@ void loop()
     prevMicros = curMicros;
 
     if(idx % steps == 0) {
-      // Serial.println("EMIT ON IGNORE!");
       emitterLED.set(1);
       ldr.update();
       outputLED.set(ldr.getBinary());
     } else {
-      // Serial.print("EMIT state: ");
-      // Serial.println(emitterState);
       emitterLED.set(emitterState);
-      emitterState = abs(1 - emitterState);
-
-      // Serial.print("LDR READING: ");
-      // Serial.println(ldr.getBinary());
-
+      emitterState = pattern[patternIdx % PATTERN_LENGTH];
+      patternIdx++;
+      // emitterState = abs(1 - emitterState);
     }
-    // Serial.println("---");
     idx++;
   }
 }
