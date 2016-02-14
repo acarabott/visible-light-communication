@@ -10,22 +10,25 @@ struct BlinkLED {
 };
 
 #define PATTERN_LENGTH 8
+#define SLOTS 4
 struct PatternLED {
   LEDHardware hardware;
-  uint32_t prevMicros;
-  uint32_t interval;
-  uint8_t patternLength;
-  uint8_t pattern[PATTERN_LENGTH];
-  uint32_t patternIdx;
+  uint32_t  prevMicros;
+  uint32_t  interval;
+  uint8_t   patternLength;
+  uint8_t   pattern[PATTERN_LENGTH];
+  uint32_t  patternIdx;
+  uint32_t  slots[SLOTS];
+  uint32_t  slotIdx;
 };
 
 struct LDR {
-  uint8_t pin;
-  uint32_t prevMicros;
-  uint32_t interval;
-  uint32_t val;
-  uint32_t minVal;
-  uint32_t maxVal;
+  uint8_t   pin;
+  uint32_t  prevMicros;
+  uint32_t  interval;
+  uint32_t  val;
+  uint32_t  minVal;
+  uint32_t  maxVal;
 };
 
 const uint8_t printEnabled = 1;
@@ -45,8 +48,10 @@ void setup() {
     .prevMicros = 0,
     .interval = 500000,
     .patternLength = PATTERN_LENGTH,
-    .pattern = { 1, 0, 0, 1, 0, 0, 1, 0 },
-    .patternIdx = 0
+    .pattern = { 1, 1, 1, 1, 0, 0, 0, 0 },
+    .patternIdx = 0,
+    .slots = { 1, 1, 0, 0 },
+    .slotIdx = 0,
   };
   pinMode(led.hardware.pin, OUTPUT);
 
@@ -76,15 +81,26 @@ void tryBlinkLED(struct BlinkLED& led, uint32_t currentMicros) {
 }
 
 void stepLED(struct PatternLED& led) {
-  digitalWrite(led.hardware.pin, led.pattern[led.patternIdx]);
+  const uint32_t val = led.pattern[led.patternIdx];
+  Serial.print("step val: ");
+  Serial.println(val);
+  digitalWrite(led.hardware.pin, val);
   led.patternIdx = (led.patternIdx + 1) % led.patternLength;
-  Serial.println(led.patternIdx);
 }
 
 void tryPatternLED(struct PatternLED& led, uint32_t currentMicros) {
   if(currentMicros - led.prevMicros >= led.interval) {
     led.prevMicros = currentMicros;
-    stepLED(led);
+    const uint32_t val = led.slots[led.slotIdx];
+    led.slotIdx = (led.slotIdx + 1) % SLOTS;
+
+    if(val == 1) {
+      // meaningless light slot
+      digitalWrite(led.hardware.pin, 1);
+    } else {
+      // output real data
+      stepLED(led);
+    }
   }
 }
 
@@ -116,7 +132,7 @@ void tryLDR(struct LDR& ldr, uint32_t currentMicros) {
 
     digitalWrite(outputPin, ldrBin);
 
-    if(printEnabled) {
+    if(false && printEnabled) {
       Serial.print("ldr val: ");
       Serial.print(ldr.val);
       Serial.print("\t");
