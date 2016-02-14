@@ -8,8 +8,9 @@ LDR ldr(0);
 uint32_t prevMicros = 0;
 const uint32_t duration = 500;
 
-const uint8_t steps = 2;
-uint32_t idx = 0;
+#define NUM_STEPS 4
+const uint8_t steps[NUM_STEPS] = { 0, 0, 1, 1 };
+uint32_t stepIdx = 0;
 uint8_t emitterState = 0;
 
 #define PATTERN_LENGTH 4
@@ -28,7 +29,7 @@ void loop()
   if(curMicros - prevMicros >= duration) {
     prevMicros = curMicros;
 
-    if(idx % steps == 0) {
+    if(steps[stepIdx % NUM_STEPS] == 0) {
       emitterLED.set(1);
       ldr.update();
       outputLED.set(ldr.getBinary());
@@ -37,10 +38,10 @@ void loop()
       emitterState = pattern[patternIdx % PATTERN_LENGTH];
 
       if(patternCount % 512 == 0) {
-        patternIdx++;
+        patternIdx = (patternIdx + 1) % PATTERN_LENGTH;
       }
       patternCount++;
     }
-    idx++;
+    stepIdx = (stepIdx + 1) % NUM_STEPS;
   }
 }
