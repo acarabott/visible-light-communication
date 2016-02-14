@@ -9,6 +9,16 @@ struct BlinkLED {
   uint32_t interval;
 };
 
+#define PATTERN_LENGTH 8
+struct PatternLED {
+  LEDHardware hardware;
+  uint32_t prevMicros;
+  uint32_t interval;
+  uint8_t patternLength;
+  uint8_t pattern[PATTERN_LENGTH];
+  uint32_t patternIdx;
+};
+
 struct LDR {
   uint8_t pin;
   uint32_t prevMicros;
@@ -18,9 +28,9 @@ struct LDR {
   uint32_t maxVal;
 };
 
-const uint8_t printEnabled = 0;
+const uint8_t printEnabled = 1;
 
-struct BlinkLED led;
+struct PatternLED led;
 struct LDR ldr;
 
 const uint8_t outputPin = 4;
@@ -33,7 +43,10 @@ void setup() {
   led = {
     .hardware = { .pin = 13, .state = 0 },
     .prevMicros = 0,
-    .interval = 1000000,
+    .interval = 500000,
+    .patternLength = PATTERN_LENGTH,
+    .pattern = { 1, 0, 0, 1, 0, 0, 1, 0 },
+    .patternIdx = 0
   };
   pinMode(led.hardware.pin, OUTPUT);
 
@@ -59,6 +72,19 @@ void tryBlinkLED(struct BlinkLED& led, uint32_t currentMicros) {
   if(currentMicros - led.prevMicros >= led.interval) {
     led.prevMicros = currentMicros;
     toggleLED(led.hardware);
+  }
+}
+
+void stepLED(struct PatternLED& led) {
+  digitalWrite(led.hardware.pin, led.pattern[led.patternIdx]);
+  led.patternIdx = (led.patternIdx + 1) % led.patternLength;
+  Serial.println(led.patternIdx);
+}
+
+void tryPatternLED(struct PatternLED& led, uint32_t currentMicros) {
+  if(currentMicros - led.prevMicros >= led.interval) {
+    led.prevMicros = currentMicros;
+    stepLED(led);
   }
 }
 
@@ -115,5 +141,6 @@ void loop() {
   const uint32_t currentMicros = micros();
 
   tryLDR(ldr, currentMicros);
-  tryBlinkLED(led, currentMicros);
+  // tryBlinkLED(led, currentMicros);
+  tryPatternLED(led, currentMicros);
 }
