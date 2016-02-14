@@ -1,6 +1,6 @@
 #define PATTERN_LENGTH 8
-#define SLOTS 4
-#define INTERVAL 500000
+#define SLOTS 2
+#define INTERVAL 250000
 // #define DEBUG
 
 struct LEDHardware {
@@ -39,32 +39,34 @@ struct PatternLDR {
   uint32_t  slotIdx;
 };
 
-struct PatternLED led;
+struct PatternLED emitterLed;
 struct PatternLDR ldr;
-
-const uint8_t outputPin = 4;
+uint8_t outputPin = 4;
 
 void setup() {
   #ifdef DEBUG
     Serial.begin(9600); // sets the serial port to 9600
   #endif
 
-  led = {
+  emitterLed = {
     .hardware = { .pin = 13, .state = 0 },
     .prevMicros = 0,
     .interval = INTERVAL,
-    .pattern = { 1, 1, 1, 1, 0, 0, 0, 0 },
+    .pattern = {
+      0, 0, 0, 0,
+      1, 1, 1, 1
+    },
     .patternIdx = 0,
-    .slots = { 1, 1, 0, 0 },  // 0 = meaningless light, 1 = data
+    .slots = { 1, 0 },  // 0 = meaningless light, 1 = data
     .slotIdx = 0,
   };
-  pinMode(led.hardware.pin, OUTPUT);
+  pinMode(emitterLed.hardware.pin, OUTPUT);
 
   ldr = {
     .hardware = { .pin = 0, .val = 0, .minVal = 1024, .maxVal = 0 },
     .prevMicros = 0,
     .interval = INTERVAL,
-    .slots = { 1, 1, 0, 0 }, // 0 = ignore, 1 = read data
+    .slots = { 1, 0 }, // 0 = ignore, 1 = read data
     .slotIdx = 0,
   };
   pinMode(ldr.hardware.pin, INPUT);
@@ -90,7 +92,7 @@ void stepLED(struct PatternLED& led) {
   led.patternIdx = (led.patternIdx + 1) % PATTERN_LENGTH;
 
   #ifdef DEBUG
-    Serial.print("step val: ");
+    Serial.print("led val: ");
     Serial.println(val);
   #endif
 }
@@ -103,9 +105,9 @@ void tryPatternLED(struct PatternLED& led, uint32_t currentMicros) {
 
     if(mode == 1) {
       // output real data
-      // stepLED(led);
+      stepLED(emitterLed);
       #ifdef DEBUG
-        Serial.println("led data");
+        // Serial.println("led data");
       #endif
     } else {
       // meaningless light slot
@@ -140,41 +142,54 @@ void tryLDR(struct PatternLDR& ldr, uint32_t currentMicros) {
   if(currentMicros - ldr.prevMicros >= ldr.interval) {
     ldr.prevMicros = currentMicros;
     updateLDR(ldr.hardware);
-
-    const uint8_t mode = ldr.slots[ldr.slotIdx];
-    ldr.slotIdx = (ldr.slotIdx + 1) % SLOTS;
-    if(mode == 1) {
-      // read slot
-      #ifdef DEBUG
-        Serial.println("ldr data");
-      #endif
-    } else {
-      // ignore slot
-
-      #ifdef DEBUG
-        Serial.println("ldr null");
-      #endif
-    }
     const int8_t ldrBin = getLDRBinary(ldr.hardware);
+    digitalWrite(outputPin, ldrBin);
 
-    // digitalWrite(outputPin, ldrBin);
-    #ifdef DEBUG
-      Serial.print("ldr val: ");
-      Serial.print(ldr.hardware.val);
-      Serial.print("\t");
+    return;
+    // updateLDR(ldr.hardware);
+    // const int8_t ldrBin = getLDRBinary(ldr.hardware);
 
-      Serial.print("ldr min: ");
-      Serial.print(ldr.hardware.minVal);
-      Serial.print("\t");
+    // const uint8_t mode = ldr.slots[ldr.slotIdx];
+    // ldr.slotIdx = (ldr.slotIdx + 1) % SLOTS;
+    // if(mode == 1) {
+    //   // read slot
+    //   digitalWrite(outputPin, ldrBin);
+    //   #ifdef DEBUG
+    //     // Serial.println("ldr data");
+    //     Serial.print("ldr bin: ");
+    //     Serial.println(ldrBin);
+    //   #endif
+    // } else {
+    //   // ignore slot
+    //   // digitalWrite(outputPin, 0);
+    //   #ifdef DEBUG
+    //     Serial.println("ldr null");
+    //   #endif
+    // }
+    // #ifdef DEBUG
+    //   Serial.println("------");
+    // #endif
 
-      Serial.print("ldr max: ");
-      Serial.print(ldr.hardware.maxVal);
-      Serial.print("\t");
 
-      Serial.print("ldr bin: ");
-      Serial.print(ldrBin);
-      Serial.print("\n");
-    #endif
+
+
+    // #ifdef DEBUG
+    //   Serial.print("ldr val: ");
+    //   Serial.print(ldr.hardware.val);
+    //   Serial.print("\t");
+
+    //   Serial.print("ldr min: ");
+    //   Serial.print(ldr.hardware.minVal);
+    //   Serial.print("\t");
+
+    //   Serial.print("ldr max: ");
+    //   Serial.print(ldr.hardware.maxVal);
+    //   Serial.print("\t");
+
+    //   Serial.print("ldr bin: ");
+    //   Serial.print(ldrBin);
+    //   Serial.print("\n");
+    // #endif
   }
 }
 
@@ -182,7 +197,7 @@ void loop() {
   // Read and print input value every 10 microseconds
   const uint32_t currentMicros = micros();
 
-  tryPatternLED(led, currentMicros);
+  tryPatternLED(emitterLed, currentMicros);
   tryLDR(ldr, currentMicros);
   // tryBlinkLED(led, currentMicros);
 }
