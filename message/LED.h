@@ -22,5 +22,4 @@ public:
 
   uint8_t getState() { return state; }
   uint8_t getPin() { return pin; }
-  void setPin(uint8_t _pin) { pin = _pin; }
 };
