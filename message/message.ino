@@ -25,6 +25,16 @@ void setup()
   #endif
 }
 
+const uint8_t getManchesterEncoding(uint8_t signal, uint32_t clockIdx) {
+  // get encoding value depending on value and clock position
+  // e.g. 0 will be encoded in two values as:
+  // clock@0 : 0, clock@1 : 1
+  // 1 encoded as
+  // clock@0 : 1, clock@1 : 0
+  return signal == 0 ? (clockIdx % 2 == 0 ? 0 : 1) :
+                       (clockIdx % 2 == 0 ? 1 : 0);
+}
+
 void loop()
 {
   uint32_t curMicros = micros();
@@ -34,15 +44,12 @@ void loop()
 
     const uint8_t patternVal = pattern[patternIdx];
     // increase pattern index every 2 steps of the clock as each value is
-    // encoded as a pair of values: 0 = [0, 1], 1 = [1, 0]
+    // encoded as a pair of values
     if(clockIdx % 2 == 1){
       patternIdx = (patternIdx + 1) % PATTERN_LENGTH;
     }
 
-    // if the value is 0 it will be encoded over two steps, depending on our
-    // clock index
-    const uint8_t output = patternVal == 0 ? (clockIdx % 2 == 0 ? 0 : 1) :
-                                             (clockIdx % 2 == 0 ? 1 : 0);
+    const uint8_t output = getManchesterEncoding(patternVal, clockIdx);
 
     #ifdef LOG
       Serial.print(clockIdx % 8);
