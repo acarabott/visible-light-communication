@@ -11,18 +11,14 @@ uint32_t prevMicros = 0;
 const uint32_t duration = 2000;
 
 #define ENCODING_LENGTH 2
-#define BITS 8
-// send this at the start of the message for synchronisation
-const uint8_t startSignal[BITS] = { 1, 1, 1, 1, 1, 1, 1, 1 };
-
+#define BYTE 8
 #define PATTERN_LENGTH 8
-// uint8_t pattern[PATTERN_LENGTH] = { 1, 0, 1, 1, 0, 1, 0, 0 };
 uint8_t pattern[PATTERN_LENGTH] = { 0,1,0,0,0,0,0,1 }; // ASCII A
 uint32_t patternIdx = 0;
 uint32_t patternCount = 0;
 uint32_t clockIdx = 0;
 
-#define BUFFER_SIZE BITS
+#define BUFFER_SIZE BYTE
 uint8_t receiverBuffer[BUFFER_SIZE] = {0};
 uint8_t receiverBufferIdx = 0;
 
@@ -39,11 +35,8 @@ const uint8_t getManchesterEncoding(uint8_t signal, uint32_t clockIdx) {
   // clock@0 : 0, clock@1 : 1
   // 1 encoded as
   // clock@0 : 1, clock@1 : 0
-  //
-  // IMPORTANT! using frame clockIdx frame 1 not 0 because the ldr is always
-  // behind by one frame!
-  return signal == 0 ? (clockIdx % ENCODING_LENGTH == 1 ? 0 : 1) :
-                       (clockIdx % ENCODING_LENGTH == 1 ? 1 : 0);
+  return signal == 0 ? (clockIdx % ENCODING_LENGTH == 0 ? 0 : 1) :
+                       (clockIdx % ENCODING_LENGTH == 0 ? 1 : 0);
 }
 
 // note max size is uint16_t
@@ -54,11 +47,7 @@ void printBuffer(uint8_t(&buffer)[BUFFER_SIZE]) {
       myByte |= 1 << i;
     }
   }
-  Serial.println(myByte);
-  // for(uint16_t i=0; i < BUFFER_SIZE; i++) {
-  //   Serial.print(buffer[i]);
-  // }
-  // Serial.print("\n");
+  Serial.write(myByte);
 }
 
 void loop()
@@ -78,25 +67,30 @@ void loop()
     const uint8_t output = getManchesterEncoding(patternVal, clockIdx);
 
     emitterLED.set(output);
-    ldr.update();
-    // only update output every other frame, we
-    if(clockIdx % ENCODING_LENGTH == 0) {
-      // read value into buffer
-      const uint8_t receiverValue = ldr.getBinary();
-      receiverBuffer[receiverBufferIdx] = receiverValue;
+    // only update output every other frame, because of 2 bit encoding
+    // IMPORTANT! using frame clockIdx frame 1 not 0 because the ldr is always
+    // behind by one frame!
+    // Otherwise this firs check would be clockIdx % ENCODING_LENGTH == 0
+    if(clockIdx % ENCODING_LENGTH == 1) {
+      ldr.update();
+      // only add to buffer if
+      const bool alreadyEnteredBuffer = receiverBufferIdx != 0;
+      const bool firstItemInPatternBuffer = clockIdx % BUFFER_SIZE == 1;
 
-      // message complete
-      if(receiverBufferIdx == (BUFFER_SIZE - 1)) {
-        printBuffer(receiverBuffer);
+      if(alreadyEnteredBuffer || firstItemInPatternBuffer) {
+        // read value into buffer
+        const uint8_t receiverValue = ldr.getBinary();
+        receiverBuffer[receiverBufferIdx] = receiverValue;
+
+        // message complete
+        if(receiverBufferIdx == (BUFFER_SIZE - 1)) {
+          printBuffer(receiverBuffer);
+        }
+
+        // advance buffer index
+        receiverBufferIdx = (receiverBufferIdx + 1) % BUFFER_SIZE;
       }
-
-      // advance buffer index
-      receiverBufferIdx = (receiverBufferIdx + 1) % BUFFER_SIZE;
-
-      // Serial.println(receiverValue);
-      // outputLED.set(receiverValue);
     }
-
     clockIdx++;
   }
 }
