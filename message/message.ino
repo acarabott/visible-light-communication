@@ -16,13 +16,14 @@ const uint32_t duration = 2000;
 const uint8_t startSignal[BITS] = { 1, 1, 1, 1, 1, 1, 1, 1 };
 
 #define PATTERN_LENGTH 8
-uint8_t pattern[PATTERN_LENGTH] = { 1, 0, 1, 1, 0, 1, 0, 0 };
+// uint8_t pattern[PATTERN_LENGTH] = { 1, 0, 1, 1, 0, 1, 0, 0 };
+uint8_t pattern[PATTERN_LENGTH] = { 0,1,0,0,0,0,0,1 }; // ASCII A
 uint32_t patternIdx = 0;
 uint32_t patternCount = 0;
 uint32_t clockIdx = 0;
 
 #define BUFFER_SIZE BITS
-uint8_t receiverBuffer[BUFFER_SIZE];
+uint8_t receiverBuffer[BUFFER_SIZE] = {0};
 uint8_t receiverBufferIdx = 0;
 
 void setup()
@@ -44,10 +45,17 @@ const uint8_t getManchesterEncoding(uint8_t signal, uint32_t clockIdx) {
 
 // note max size is uint16_t
 void printBuffer(uint8_t(&buffer)[BUFFER_SIZE]) {
-  for(uint16_t i=0; i < BUFFER_SIZE; i++) {
-    Serial.print(buffer[i]);
+  uint8_t myByte = 0;
+  for(uint8_t i = 0; i < BUFFER_SIZE; i++ ) {
+    if (buffer[(BUFFER_SIZE-1) - i] == 1) {
+      myByte |= 1 << i;
+    }
   }
-  Serial.print("\n");
+  Serial.println(myByte);
+  // for(uint16_t i=0; i < BUFFER_SIZE; i++) {
+  //   Serial.print(buffer[i]);
+  // }
+  // Serial.print("\n");
 }
 
 void loop()
