@@ -39,8 +39,11 @@ const uint8_t getManchesterEncoding(uint8_t signal, uint32_t clockIdx) {
   // clock@0 : 0, clock@1 : 1
   // 1 encoded as
   // clock@0 : 1, clock@1 : 0
-  return signal == 0 ? (clockIdx % ENCODING_LENGTH == 0 ? 0 : 1) :
-                       (clockIdx % ENCODING_LENGTH == 0 ? 1 : 0);
+  //
+  // IMPORTANT! using frame clockIdx frame 1 not 0 because the ldr is always
+  // behind by one frame!
+  return signal == 0 ? (clockIdx % ENCODING_LENGTH == 1 ? 0 : 1) :
+                       (clockIdx % ENCODING_LENGTH == 1 ? 1 : 0);
 }
 
 // note max size is uint16_t
