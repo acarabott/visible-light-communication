@@ -1,5 +1,6 @@
 #include "LED.h"
 #include "LDR.h"
+#include "Photodiode.h"
 
 #define LOG
 
@@ -9,6 +10,7 @@
 LED emitterLED(13);
 LED outputLED(4);
 LDR ldr(0);
+Photodiode photodiode(1);
 
 uint32_t prevMicros = 0;
 const uint32_t duration = 1000;
@@ -88,15 +90,17 @@ void loop()
     // IMPORTANT! using frame clockIdx frame 1 not 0 because the ldr is always
     // behind by one frame!
     // Otherwise this firs check would be clockIdx % ENCODING_LENGTH == 0
-    if(clockIdx % ENCODING_LENGTH == 1) {
+    if(clockIdx % ENCODING_LENGTH == 0) {
       ldr.update();
+      photodiode.update();
       // only add to buffer if
       const bool alreadyEnteredBuffer = receiverBufferIdx != 0;
-      const bool firstItemInPatternBuffer = clockIdx % BUFFER_SIZE == 1;
+      const bool firstItemInPatternBuffer = clockIdx % BUFFER_SIZE == 0;
 
       if(alreadyEnteredBuffer || firstItemInPatternBuffer) {
         // read value into buffer
-        const uint8_t receiverValue = ldr.getBinary();
+        // const uint8_t receiverValue = ldr.getBinary();
+        const uint8_t receiverValue = photodiode.getBinary();
         receiverBuffer[receiverBufferIdx] = receiverValue;
 
         // message complete
