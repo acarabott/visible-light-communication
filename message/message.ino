@@ -2,7 +2,8 @@
 #include "LDR.h"
 #include "Photodiode.h"
 
-#define LOG
+// #define LOG
+#define PRINT
 
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
@@ -31,7 +32,7 @@ uint8_t receiverBufferIdx = 0;
 
 void setup()
 {
-  #ifdef LOG
+  #ifdef PRINT
     Serial.begin(115200);
   #endif
 }
@@ -93,6 +94,17 @@ void loop()
     if(clockIdx % ENCODING_LENGTH == 0) {
       ldr.update();
       photodiode.update();
+
+      #ifdef LOG
+        // Serial.print("ldr min: "); Serial.println(photodiode.getMinVal());
+        // Serial.print("ldr max: "); Serial.println(photodiode.getMaxVal());
+        // Serial.print("ldr val: "); Serial.println(photodiode.getVal());
+        Serial.print("ldr bin: "); Serial.println(ldr.getBinary());
+        Serial.print("pdo bin: "); Serial.println(photodiode.getBinary());
+
+        Serial.println("---");
+      #endif
+
       // only add to buffer if
       const bool alreadyEnteredBuffer = receiverBufferIdx != 0;
       const bool firstItemInPatternBuffer = clockIdx % BUFFER_SIZE == 0;
