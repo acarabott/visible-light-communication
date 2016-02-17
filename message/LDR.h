@@ -20,11 +20,15 @@ public:
 
 
   void update() {
+    // slowly squeeze input range
+    minVal++;
+    maxVal--;
+
     val = analogRead(pin);
 
-    // calibrate, and slowly squeeze
-    minVal = min(minVal, val) + 1;
-    maxVal = max(maxVal, val) - 1;
+    // calibrate
+    minVal = max(min(minVal, val), 0);
+    maxVal = min(max(maxVal, val), 1023);
 
     // ensure that are min and max aren't too close
     const uint8_t tooClose = minVal + minRange >= maxVal;
@@ -33,14 +37,9 @@ public:
     maxVal = tooClose ? maxVal + (minRange / 2) : maxVal;
   }
 
-  uint16_t getVal() {
-    return val;
-  }
-
-  uint8_t getBinary() {
-    return val >= (maxVal + minVal) / 2;
-  }
-  uint8_t getPin() { return pin; }
+  uint16_t getVal()    { return val; }
+  uint8_t  getBinary() { return val >= (maxVal + minVal) / 2; }
+  uint8_t  getPin()    { return pin; }
   uint16_t getMinVal() { return minVal; }
   uint16_t getMaxVal() { return maxVal; }
 };
