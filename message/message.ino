@@ -81,6 +81,23 @@ void encodeChar(uint8_t c, uint8_t(&buffer)[BYTE]) {
   }
 }
 
+uint8_t isValidChar(char c) {
+  // if(c >= 32 || c <= 126) {
+  if(c >= 97 || c <= 110) {
+    return 1;
+  }
+
+  return 0;
+}
+
+char makeCharSafe(char c) {
+  if(isValidChar(c)){
+    return c;
+  }
+  // underscore for junk
+  return '_';
+}
+
 void loop()
 {
   uint32_t curMicros = micros();
@@ -132,7 +149,7 @@ void loop()
         // char complete
         if(receiverBufferIdx == (BYTE - 1)) {
           uint8_t receivedChar = getCharFromBuffer(receiverBuffer);
-          msgBuffer[msgBufferIdx] = receivedChar;
+          msgBuffer[msgBufferIdx] = makeCharSafe(receivedChar);
           // end of message
           const bool bufferFull = msgBufferIdx == MAX_MSG_SIZE - 1;
           const bool endOfText = receivedChar == ETX;
