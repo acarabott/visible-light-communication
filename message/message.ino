@@ -37,6 +37,8 @@ uint8_t receiverBufferIdx = 0;
 char msgBuffer[MAX_MSG_SIZE] = {0};
 uint16_t msgBufferIdx = 0;
 
+uint8_t carOn = 0;
+
 void setup()
 {
   // can terminate strings with ETX
@@ -117,7 +119,9 @@ void loop()
 
     const uint8_t output = getManchesterEncoding(patternVal, clockIdx);
 
-    emitterLED.set(output);
+    if(carOn) {
+      emitterLED.set(output);
+    }
     // only update output every other frame, because of 2 bit encoding
     // IMPORTANT!
     // if using ldr, then use clockIdx frame 1 not 0 because the ldr is always
