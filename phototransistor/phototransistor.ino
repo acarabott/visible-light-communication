@@ -1,4 +1,4 @@
-const uint8_t photoPin = 1;
+const uint8_t photoPin = 0;
 uint32_t prevPhotoMicros = 0;
 uint32_t photoDur = 10000;
 
@@ -11,6 +11,7 @@ void setup() {
   Serial.begin(9600); // sets the serial port to 9600
   pinMode(photoPin, INPUT);
   pinMode(ledPin, OUTPUT);
+  Serial.println("phototransistor");
 }
 
 void loop() {
@@ -20,6 +21,7 @@ void loop() {
     prevPhotoMicros = curMicros;
 
     const int val = analogRead(photoPin);
+    Serial.print("val: ");
     Serial.println(val);
   }
 
