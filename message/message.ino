@@ -18,7 +18,9 @@ const uint32_t duration = 1000;
 #define ENCODING_LENGTH 2
 #define BYTE 8
 #define PATTERN_LENGTH 8
-uint8_t text[] = "Hello World!\n";
+#define ETX 3
+
+uint8_t text[] = "Slow down!";
 uint16_t textIdx = 0;
 uint8_t pattern[BYTE] = { 0,1,0,0,0,0,0,1 }; // ASCII A
 uint32_t patternIdx = 0;
@@ -37,6 +39,8 @@ uint16_t msgBufferIdx = 0;
 
 void setup()
 {
+  // can terminate strings with ETX
+  // text[COUNT_OF(text) - 1] = ETX;
   // set up the LCD's number of columns and rows:
   lcd.begin(LCD_COLS, LCD_ROWS);
   #ifdef PRINT
