@@ -17,24 +17,24 @@ const uint32_t duration = 1000;
 
 #define ENCODING_LENGTH 2
 #define BYTE 8
+#define BUFFER_SIZE BYTE
 #define PATTERN_LENGTH 8
 #define ETX 3
+#define LCD_COLS 16
+#define LCD_ROWS 2
+#define MAX_MSG_SIZE LCD_COLS
 
-uint8_t text[] = "Slow down!";
+char text[MAX_MSG_SIZE] = "Stopping in ";
 uint16_t textIdx = 0;
 uint8_t pattern[BYTE] = { 0,1,0,0,0,0,0,1 }; // ASCII A
 uint32_t patternIdx = 0;
 uint32_t patternCount = 0;
 uint32_t clockIdx = 0;
 
-#define BUFFER_SIZE BYTE
 uint8_t receiverBuffer[BUFFER_SIZE] = {0};
 uint8_t receiverBufferIdx = 0;
 
-#define LCD_COLS 16
-#define LCD_ROWS 2
-#define MAX_MSG_SIZE LCD_COLS
-char msgBuffer[MAX_MSG_SIZE] = {0};
+char msgBuffer[MAX_MSG_SIZE] = {' '};
 uint16_t msgBufferIdx = 0;
 
 uint8_t carOn = 0;
@@ -52,6 +52,7 @@ void setup()
   // text[COUNT_OF(text) - 1] = ETX;
   // set up the LCD's number of columns and rows:
   lcd.begin(LCD_COLS, LCD_ROWS);
+  updateMsg();
   #ifdef PRINT
     Serial.begin(115200);
   #endif
@@ -104,21 +105,54 @@ char makeCharSafe(char c) {
   return isValidChar(c) ? c : ' ';
 }
 
-void carSpeedAction(uint32_t curMicros) {
+void updateMsg() {
+  const uint16_t len = 12; // TODO replace this with length of pretext
+  const uint16_t speedLen = 2; // TODO also replace
+
+  for(uint16_t i = 0; i < len; i++){
+    msgBuffer[i] = text[i];
+  }
+
+  String speedStr(carSpeed);
+  if(speedStr.length() == 1) {
+    msgBuffer[len] = ' ';
+    msgBuffer[len+1] = speedStr.charAt(0);
+  } else {
+    for(uint16_t i = 0; i < speedStr.length(); i++) {
+      msgBuffer[len + i] = speedStr.charAt(i);
+    }
+  }
+
+  const uint16_t postTextPos = (len + speedLen);
+
+  msgBuffer[postTextPos] = 'm';
+  for(int i = postTextPos+1; i < MAX_MSG_SIZE; i++) {
+    msgBuffer[i] = ' ';
+  }
+  Serial.println(msgBuffer);
+}
+
+uint8_t carSpeedAction(uint32_t curMicros) {
   if(curMicros - carSpeedPrevMicros >= carSpeedDuration){
     carSpeedPrevMicros = curMicros;
     carSpeed--;
     if(carSpeed == -1) {
       carSpeed = carMaxSpeed;
     }
+
+    return 1;
   }
+
+  return 0;
 }
 
-void carStateAction(uint32_t curMicros) {
+uint8_t carStateAction(uint32_t curMicros) {
   if(curMicros - carStatePrevMicros >= carStateDuration) {
     carStatePrevMicros = curMicros;
     carOn = abs(1 - carOn);
+    return 1;
   }
+  return 0;
 }
 
 void loop()
@@ -126,7 +160,10 @@ void loop()
   uint32_t curMicros = micros();
 
   carStateAction(curMicros);
-  carSpeedAction(curMicros);
+  uint8_t carSpeedChanged = carSpeedAction(curMicros);
+  if(carSpeedChanged) {
+    updateMsg();
+  }
 
   if(curMicros - prevMicros >= duration) {
     prevMicros = curMicros;
