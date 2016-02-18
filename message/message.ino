@@ -157,6 +157,8 @@ void loop()
             const String str(msgBuffer);
             lcd.setCursor(0, 0);
             lcd.print(msgBuffer);
+            lcd.setCursor(0, 1);
+            lcd.print(random(5, 30));
             msgBufferIdx = 0;
           } else {
             msgBufferIdx = (msgBufferIdx + 1) % MAX_MSG_SIZE;
