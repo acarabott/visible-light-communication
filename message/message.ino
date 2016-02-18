@@ -90,7 +90,8 @@ void loop()
 
     if(clockIdx % ENCODING_LENGTH == 0 && patternIdx == 0) {
       encodeChar(text[textIdx], pattern);
-      textIdx = (textIdx + 1) % COUNT_OF(text);
+      // message may be truncated
+      textIdx = (textIdx + 1) % MAX_MSG_SIZE;
     }
 
     const uint8_t patternVal = pattern[patternIdx];
