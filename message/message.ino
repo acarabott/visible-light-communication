@@ -134,8 +134,11 @@ void loop()
           uint8_t receivedChar = getCharFromBuffer(receiverBuffer);
           msgBuffer[msgBufferIdx] = receivedChar;
           // end of message
-          if(msgBufferIdx == MAX_MSG_SIZE - 1 || receivedChar == '\n') {
-            // TODO HERE ambiguous call to lcd.print
+          const bool bufferFull = msgBufferIdx == MAX_MSG_SIZE - 1;
+          const bool endOfText = receivedChar == ETX;
+          if(bufferFull || endOfText) {
+            const String str(msgBuffer);
+            lcd.setCursor(0, 0);
             lcd.print(msgBuffer);
             msgBufferIdx = 0;
           } else {
