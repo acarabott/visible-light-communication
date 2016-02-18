@@ -24,7 +24,8 @@ const uint32_t duration = 1000;
 #define LCD_ROWS 2
 #define MAX_MSG_SIZE LCD_COLS
 
-char text[MAX_MSG_SIZE] = "Stopping in ";
+char preText[] = "Stopping in ";
+char text[MAX_MSG_SIZE] = {' '};
 uint16_t textIdx = 0;
 uint8_t pattern[BYTE] = { 0,1,0,0,0,0,0,1 }; // ASCII A
 uint32_t patternIdx = 0;
@@ -110,26 +111,25 @@ void updateMsg() {
   const uint16_t speedLen = 2; // TODO also replace
 
   for(uint16_t i = 0; i < len; i++){
-    msgBuffer[i] = text[i];
+    text[i] = preText[i];
   }
 
   String speedStr(carSpeed);
   if(speedStr.length() == 1) {
-    msgBuffer[len] = ' ';
-    msgBuffer[len+1] = speedStr.charAt(0);
+    text[len] = ' ';
+    text[len+1] = speedStr.charAt(0);
   } else {
     for(uint16_t i = 0; i < speedStr.length(); i++) {
-      msgBuffer[len + i] = speedStr.charAt(i);
+      text[len + i] = speedStr.charAt(i);
     }
   }
 
   const uint16_t postTextPos = (len + speedLen);
 
-  msgBuffer[postTextPos] = 'm';
+  text[postTextPos] = 'm';
   for(int i = postTextPos+1; i < MAX_MSG_SIZE; i++) {
-    msgBuffer[i] = ' ';
+    text[i] = ' ';
   }
-  Serial.println(msgBuffer);
 }
 
 uint8_t carSpeedAction(uint32_t curMicros) {
@@ -171,7 +171,7 @@ void loop()
   }
 
   if(carStateChanged || carSpeedChanged) {
-    updateMsg();
+    // updateMsg();
   }
 
   if(curMicros - prevMicros >= duration) {
@@ -230,11 +230,9 @@ void loop()
           const bool bufferFull = msgBufferIdx == MAX_MSG_SIZE - 1;
           const bool endOfText = receivedChar == ETX;
           if(bufferFull || endOfText) {
-            const String str(msgBuffer);
             lcd.setCursor(0, 0);
             lcd.print(msgBuffer);
-            lcd.setCursor(0, 1);
-            lcd.print(random(5, 30));
+            Serial.println(msgBuffer);
             msgBufferIdx = 0;
           } else {
             msgBufferIdx = (msgBufferIdx + 1) % MAX_MSG_SIZE;
