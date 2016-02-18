@@ -1,14 +1,13 @@
 # VLC TODO
 
 ## requirements
-- Lower resistor
-- try at a distance
-    + multiple leds?
-- better adaptation to bright lights
-- Have light response for LDR
-- Housing
+
+- Solder female to male pins for LEDs
+- Solder resistors
+- Send good message to LCD screen
 
 ## nice to have
 
+- Send sensor value
 - use LED instead of LDR
 - separate devices
