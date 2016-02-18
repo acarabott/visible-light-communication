@@ -171,7 +171,7 @@ void loop()
   }
 
   if(carStateChanged || carSpeedChanged) {
-    // updateMsg();
+    updateMsg();
   }
 
   if(curMicros - prevMicros >= duration) {
@@ -232,7 +232,6 @@ void loop()
           if(bufferFull || endOfText) {
             lcd.setCursor(0, 0);
             lcd.print(msgBuffer);
-            Serial.println(msgBuffer);
             msgBufferIdx = 0;
           } else {
             msgBufferIdx = (msgBufferIdx + 1) % MAX_MSG_SIZE;
