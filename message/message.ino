@@ -70,7 +70,7 @@ const uint8_t getCharFromBuffer(uint8_t(&buffer)[BYTE]) {
 }
 
 // note max size is uint16_t
-void printBuffer(uint8_t(&buffer)[BUFFER_SIZE]) {
+void printCharFromBuffer(uint8_t(&buffer)[BUFFER_SIZE]) {
   Serial.write(getCharFromBuffer(buffer));
 }
 
