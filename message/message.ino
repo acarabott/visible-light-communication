@@ -1,6 +1,7 @@
 #include "LED.h"
 #include "LDR.h"
 #include "Photodiode.h"
+#include <LiquidCrystal.h>
 
 // #define LOG
 #define PRINT
@@ -9,6 +10,7 @@
 
 LED emitterLED(13);
 Photodiode photodiode(0);
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
 uint32_t prevMicros = 0;
 const uint32_t duration = 1000;
@@ -27,8 +29,16 @@ uint32_t clockIdx = 0;
 uint8_t receiverBuffer[BUFFER_SIZE] = {0};
 uint8_t receiverBufferIdx = 0;
 
+#define LCD_COLS 16
+#define LCD_ROWS 2
+#define MAX_MSG_SIZE LCD_COLS
+unsigned char msgBuffer[MAX_MSG_SIZE] = {0};
+uint16_t msgBufferIdx = 0;
+
 void setup()
 {
+  // set up the LCD's number of columns and rows:
+  lcd.begin(LCD_COLS, LCD_ROWS);
   #ifdef PRINT
     Serial.begin(115200);
   #endif
@@ -45,20 +55,25 @@ const uint8_t getManchesterEncoding(uint8_t signal, uint32_t clockIdx) {
 }
 
 // note max size is uint16_t
-void printBuffer(uint8_t(&buffer)[BUFFER_SIZE]) {
-  uint8_t myByte = 0;
-  for(uint8_t i = 0; i < BUFFER_SIZE; i++ ) {
-    if (buffer[(BUFFER_SIZE-1) - i] == 1) {
-      myByte |= 1 << i;
+const uint8_t getCharFromBuffer(uint8_t(&buffer)[BYTE]) {
+  uint8_t myChar = 0;
+  for(uint8_t i = 0; i < BYTE; i++ ) {
+    if (buffer[(BYTE-1) - i] == 1) {
+      myChar |= 1 << i;
     }
   }
-  Serial.write(myByte);
+  return myChar;
 }
 
-void encodeChar(uint8_t c, uint8_t(&buffer)[BUFFER_SIZE]) {
-  for (uint16_t i = 0; i < BUFFER_SIZE; ++i) {
+// note max size is uint16_t
+void printBuffer(uint8_t(&buffer)[BUFFER_SIZE]) {
+  Serial.write(getCharFromBuffer(buffer));
+}
+
+void encodeChar(uint8_t c, uint8_t(&buffer)[BYTE]) {
+  for (uint16_t i = 0; i < BYTE; ++i) {
     const uint8_t val = (c >> i) & 1;
-    buffer[(BUFFER_SIZE-1) - i] = val;
+    buffer[(BYTE-1) - i] = val;
   }
 }
 
@@ -109,13 +124,22 @@ void loop()
         const uint8_t receiverValue = photodiode.getBinary();
         receiverBuffer[receiverBufferIdx] = receiverValue;
 
-        // message complete
-        if(receiverBufferIdx == (BUFFER_SIZE - 1)) {
-          printBuffer(receiverBuffer);
+        // char complete
+        if(receiverBufferIdx == (BYTE - 1)) {
+          uint8_t receivedChar = getCharFromBuffer(receiverBuffer);
+          msgBuffer[msgBufferIdx] = receivedChar;
+          // end of message
+          if(msgBufferIdx == MAX_MSG_SIZE - 1 || receivedChar == '\n') {
+            // TODO HERE ambiguous call to lcd.print
+            lcd.print(msgBuffer);
+            msgBufferIdx = 0;
+          } else {
+            msgBufferIdx = (msgBufferIdx + 1) % MAX_MSG_SIZE;
+          }
         }
 
         // advance buffer index
-        receiverBufferIdx = (receiverBufferIdx + 1) % BUFFER_SIZE;
+        receiverBufferIdx = (receiverBufferIdx + 1) % BYTE;
       }
     }
     clockIdx++;
