@@ -34,7 +34,7 @@ uint8_t receiverBufferIdx = 0;
 #define LCD_COLS 16
 #define LCD_ROWS 2
 #define MAX_MSG_SIZE LCD_COLS
-unsigned char msgBuffer[MAX_MSG_SIZE] = {0};
+char msgBuffer[MAX_MSG_SIZE] = {0};
 uint16_t msgBufferIdx = 0;
 
 void setup()
