@@ -38,6 +38,8 @@ char msgBuffer[MAX_MSG_SIZE] = {0};
 uint16_t msgBufferIdx = 0;
 
 uint8_t carOn = 0;
+uint32_t carPrevMicros = 0;
+uint32_t carDuration = 5000000;
 
 void setup()
 {
@@ -101,6 +103,12 @@ void loop()
 {
   uint32_t curMicros = micros();
 
+  if(curMicros - carPrevMicros >= carDuration) {
+    carPrevMicros = curMicros;
+    carOn = abs(1 - carOn);
+  }
+
+
   if(curMicros - prevMicros >= duration) {
     prevMicros = curMicros;
 
@@ -121,6 +129,8 @@ void loop()
 
     if(carOn) {
       emitterLED.set(output);
+    } else {
+      emitterLED.set(0);
     }
     // only update output every other frame, because of 2 bit encoding
     // IMPORTANT!
