@@ -66,6 +66,7 @@ const uint8_t getCharFromBuffer(uint8_t(&buffer)[BYTE]) {
       myChar |= 1 << i;
     }
   }
+
   return myChar;
 }
 
@@ -82,20 +83,16 @@ void encodeChar(uint8_t c, uint8_t(&buffer)[BYTE]) {
 }
 
 uint8_t isValidChar(char c) {
-  // if(c >= 32 || c <= 126) {
-  if(c >= 97 || c <= 110) {
+  if(c >= 32 && c <= 126) {
     return 1;
   }
 
   return 0;
 }
 
+// return character if safe, otherwise return a space
 char makeCharSafe(char c) {
-  if(isValidChar(c)){
-    return c;
-  }
-  // underscore for junk
-  return '_';
+  return isValidChar(c) ? c : ' ';
 }
 
 void loop()
