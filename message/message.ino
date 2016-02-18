@@ -155,13 +155,22 @@ uint8_t carStateAction(uint32_t curMicros) {
   return 0;
 }
 
+void resetCarSpeed() {
+  carSpeed = carMaxSpeed;
+}
+
 void loop()
 {
   uint32_t curMicros = micros();
 
-  carStateAction(curMicros);
+  uint8_t carStateChanged = carStateAction(curMicros);
   uint8_t carSpeedChanged = carSpeedAction(curMicros);
-  if(carSpeedChanged) {
+
+  if(carStateChanged) {
+    resetCarSpeed();
+  }
+
+  if(carStateChanged || carSpeedChanged) {
     updateMsg();
   }
 
