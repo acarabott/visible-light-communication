@@ -7,11 +7,8 @@
 
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))
 
-
 LED emitterLED(13);
-LED outputLED(4);
-LDR ldr(0);
-Photodiode photodiode(1);
+Photodiode photodiode(0);
 
 uint32_t prevMicros = 0;
 const uint32_t duration = 1000;
@@ -88,20 +85,17 @@ void loop()
 
     emitterLED.set(output);
     // only update output every other frame, because of 2 bit encoding
-    // IMPORTANT! using frame clockIdx frame 1 not 0 because the ldr is always
+    // IMPORTANT!
+    // if using ldr, then use clockIdx frame 1 not 0 because the ldr is always
     // behind by one frame!
-    // Otherwise this firs check would be clockIdx % ENCODING_LENGTH == 0
+    // photodiode is faster so use clockIdx % ENCODING_LENGTH == 0
     if(clockIdx % ENCODING_LENGTH == 0) {
-      ldr.update();
       photodiode.update();
 
       #ifdef LOG
-        // Serial.print("ldr min: "); Serial.println(photodiode.getMinVal());
-        // Serial.print("ldr max: "); Serial.println(photodiode.getMaxVal());
-        // Serial.print("ldr val: "); Serial.println(photodiode.getVal());
-        Serial.print("ldr bin: "); Serial.println(ldr.getBinary());
-        Serial.print("pdo bin: "); Serial.println(photodiode.getBinary());
-
+        Serial.print("ldr min: "); Serial.println(photodiode.getMinVal());
+        Serial.print("ldr max: "); Serial.println(photodiode.getMaxVal());
+        Serial.print("ldr val: "); Serial.println(photodiode.getVal());
         Serial.println("---");
       #endif
 
