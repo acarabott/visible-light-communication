@@ -38,8 +38,13 @@ char msgBuffer[MAX_MSG_SIZE] = {0};
 uint16_t msgBufferIdx = 0;
 
 uint8_t carOn = 0;
-uint32_t carPrevMicros = 0;
-uint32_t carDuration = 5000000;
+uint32_t carStatePrevMicros = 0;
+const uint32_t carStateDuration = 5000000;
+
+const uint16_t carMaxSpeed = 30;
+uint16_t carSpeed = carMaxSpeed;
+uint32_t carSpeedPrevMicros = 0;
+const uint32_t carSpeedDuration = carStateDuration / carMaxSpeed;
 
 void setup()
 {
@@ -99,15 +104,29 @@ char makeCharSafe(char c) {
   return isValidChar(c) ? c : ' ';
 }
 
+void carSpeedAction(uint32_t curMicros) {
+  if(curMicros - carSpeedPrevMicros >= carSpeedDuration){
+    carSpeedPrevMicros = curMicros;
+    carSpeed--;
+    if(carSpeed == -1) {
+      carSpeed = carMaxSpeed;
+    }
+  }
+}
+
+void carStateAction(uint32_t curMicros) {
+  if(curMicros - carStatePrevMicros >= carStateDuration) {
+    carStatePrevMicros = curMicros;
+    carOn = abs(1 - carOn);
+  }
+}
+
 void loop()
 {
   uint32_t curMicros = micros();
 
-  if(curMicros - carPrevMicros >= carDuration) {
-    carPrevMicros = curMicros;
-    carOn = abs(1 - carOn);
-  }
-
+  carStateAction(curMicros);
+  carSpeedAction(curMicros);
 
   if(curMicros - prevMicros >= duration) {
     prevMicros = curMicros;
